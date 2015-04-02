@@ -44,6 +44,17 @@ class ElasticQuery(object):
                 }
             }
 
+    def _ensure_boosting(self, type, name):
+        '''Ensure we have a bool filter/quer struct prepared'''
+        if self.structure[type].get('match_all') == {}:
+            self.structure[type] = {
+                'boosting': {
+                    'positive': [],
+                    'negative': [],
+                    'negative_boost': []
+                }
+            }
+
     def _ensure_fields(self, fields):
         '''When we have a mapping, ensure the fields we use are valid'''
         pass
@@ -121,6 +132,7 @@ class ElasticQuery(object):
 
         return self
 
+
     def aggregate(self, *aggregates):
         '''Add a aggregations to the query'''
         [
@@ -153,3 +165,12 @@ class ElasticQuery(object):
             doc_type=self.__doc_type__,
             body=self.structure
         )
+
+    def boosting(self,*boosts):
+
+        for ( type, fields, object) in boosts:
+            key=fields[0]
+            self.structure[type]['boosting'].append(object)
+
+        return self
+

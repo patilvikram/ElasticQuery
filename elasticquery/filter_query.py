@@ -57,9 +57,28 @@ class Filter(object):
 
     @classmethod
     def term(self, **kwargs):
-        return self.type, kwargs.keys(), {
-            'term': kwargs
-        }
+        term_data={}
+
+        if 'boost' in kwargs.keys():
+            print 'boost in kwargs'
+            field=None
+            for key in kwargs.keys():
+                if key =='boost':
+                    term_data['boost']=kwargs[key]
+                else:
+                    term_data['value']=kwargs[key]
+                    field=key
+
+            temp=term_data
+            term_data={}
+            term_data[field]=temp
+            return self.type, kwargs.keys(), {
+                'term': term_data
+            }
+        else:
+            return self.type, kwargs.keys(), {
+                'term': kwargs
+            }
 
     @classmethod
     def terms(self, **kwargs):
@@ -186,3 +205,21 @@ class Query(Filter):
                 field: settings
             }
         }
+
+    @classmethod
+    def positive(self, *queries):
+        settings = {}
+        for type, field, object in queries:
+            if len( field )> 0:
+                settings.update(object)
+        return self.type, ['positive'], settings
+
+    @classmethod
+    def negative(self,negative_boost=0.1, negative_query=None):
+        settings = {}
+        negative_query_result={}
+        print negative_query
+        for type, field, object in negative_query:
+            if len( field )> 0:
+                 negative_query_result.update(field)
+        return self.type, negative_query_result
